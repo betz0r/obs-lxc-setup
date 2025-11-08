@@ -136,6 +136,7 @@ echo "Copying Docker and systemd files into the container..."
 pct push ${CONTAINER_ID} ./Dockerfile /root/Dockerfile
 pct push ${CONTAINER_ID} ./docker-compose.yml /root/docker-compose.yml
 pct push ${CONTAINER_ID} ./systemd/obs-vnc.service /etc/systemd/system/obs-vnc.service
+pct push ${CONTAINER_ID} ./entrypoint.sh /root/entrypoint.sh
 
 # Step 10: Run OBS VNC Docker service
 echo "Setting up OBS VNC Docker service..."

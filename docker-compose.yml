@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: obs_vnc_container
+    privileged: true
     ports:
       - "5900:5900"  # VNC Port
       - "5901:5901"  # VNC Web Port

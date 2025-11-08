@@ -109,6 +109,8 @@ mp0: ${SHARED_DIR},mp=/shared
 nameserver: ${DNS_SERVER}
 lxc.cgroup2.devices.allow: c 226:* rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
+lxc.apparmor.profile: unconfined
+lxc.cap.drop:
 EOF
 
 # Step 7: Start the container

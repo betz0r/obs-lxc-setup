@@ -5,7 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: obs_vnc_container
     ports:
-      - "5901:5901"  # VNC Port
+      - "5900:5900"  # VNC Port
+      - "5901:5901"  # VNC Web Port
     volumes:
       - /shared:/shared  # Shared directory
     environment:

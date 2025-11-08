@@ -23,7 +23,10 @@ RUN mkdir -p ${SHARED_DIR} && chmod -R 777 ${SHARED_DIR}
 
 RUN usermod -aG video root
 
-RUN chmod 666 /dev/dri/*
+# Keep the container alive with a dummy loop
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Keep the container alive with a dummy loop
 CMD ["tail", "-f", "/dev/null"]

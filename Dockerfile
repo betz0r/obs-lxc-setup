@@ -1,5 +1,7 @@
 FROM bandi13/gui-docker:1.5
 
+USER root
+
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update -y \
     && apt-get install -y software-properties-common \

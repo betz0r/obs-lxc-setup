@@ -11,6 +11,10 @@ services:
       - /shared:/shared  # Shared directory
     environment:
       - VNC_PASSWD=123456  # Default VNC password
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
     restart: always
     shm_size: "256m"  # Shared memory
     healthcheck:

@@ -20,4 +20,5 @@ ENV SHARED_DIR=/shared
 RUN mkdir -p ${SHARED_DIR} && chmod -R 777 ${SHARED_DIR}
 
 # Keep the container alive with a dummy loop
-CMD ["bash", "-c", "while :; do sleep 30; done"]
+CMD ["bash", "-c", "while true; do sleep 30; done"]
+

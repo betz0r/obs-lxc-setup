@@ -21,5 +21,9 @@ ENV SHARED_DIR=/shared
 # Create a shared directory inside the container
 RUN mkdir -p ${SHARED_DIR} && chmod -R 777 ${SHARED_DIR}
 
+RUN usermod -aG video root
+
+RUN chmod 666 /dev/dri/*
+
 # Keep the container alive with a dummy loop
 CMD ["tail", "-f", "/dev/null"]

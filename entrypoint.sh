@@ -20,7 +20,7 @@ VNC_PID=$!
 sleep 2
 
 # Verify VNC is listening
-if nc -z localhost 5901 2>/dev/null; then
+if nc -z 127.0.0.1 5901 2>/dev/null; then
     echo "VNC server is listening on port 5901"
 else
     echo "WARNING: VNC server may not be listening on port 5901"
@@ -37,7 +37,7 @@ OBS_PID=$!
 # Keep the container alive - monitor VNC and OBS
 echo "Container started. Monitoring services..."
 while true; do
-    if ! nc -z 0.0.0.0 5901 2>/dev/null && ! nc -z 127.0.0.1 5901 2>/dev/null; then
+    if ! nc -z 127.0.0.1 5901 2>/dev/null; then
         echo "VNC port not responding, restarting..."
         killall vncserver 2>/dev/null || true
         sleep 1

@@ -16,18 +16,32 @@ Xvfb :1 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset >/tmp/xvfb.lo
 XVFB_PID=$!
 sleep 3
 
-# Start VNC server on display :1
+# Start VNC server - connect to existing Xvfb display :1
 echo "Starting VNC server..."
-vncserver :1 -geometry 1920x1080 -depth 24 -dpi 96 2>&1 | tee /tmp/vncserver.log || true
-sleep 2
+# Kill any existing vncserver processes
+killall vncserver 2>/dev/null || true
+sleep 1
+
+# Start vncserver in view-only mode or just start x11vnc as alternative
+# Try using x11vnc if available, otherwise use vncserver properly
+if command -v x11vnc &> /dev/null; then
+    echo "Using x11vnc to serve display :1"
+    x11vnc -display :1 -forever -nopw -rfbport 5900 >/tmp/x11vnc.log 2>&1 &
+    sleep 2
+else
+    echo "x11vnc not found, using vncserver with new display"
+    # Use display :2 instead to avoid conflict
+    vncserver :2 -geometry 1920x1080 -depth 24 -dpi 96 >/tmp/vncserver.log 2>&1 || true
+    sleep 2
+fi
 
 # Verify VNC is listening
-if nc -z localhost 5901 2>/dev/null; then
-    echo "VNC server is listening on port 5901"
+if nc -z localhost 5900 2>/dev/null || nc -z localhost 5901 2>/dev/null; then
+    echo "VNC server is listening on port 5900/5901"
 else
     echo "WARNING: VNC server may not be listening"
-    echo "Attempting to check vncserver status..."
-    vncserver -list || echo "vncserver -list failed"
+    echo "Checking vncserver status..."
+    vncserver -list 2>/dev/null || echo "vncserver -list failed"
 fi
 
 # Start OBS in the background

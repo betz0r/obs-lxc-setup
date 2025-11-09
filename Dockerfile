@@ -5,12 +5,9 @@ USER root
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt update -y \
     && apt install -y software-properties-common \
-    && apt update -y \
     && add-apt-repository ppa:obsproject/obs-studio \
     && apt update -y \
     && apt install -y obs-studio \
-    && sed -i 's/^deb \(.*\)$/deb \1\ndeb \1 contrib non-free-firmware/' /etc/apt/sources.list.d/debian.sources 2>/dev/null || echo "deb http://deb.debian.org/debian bookworm contrib non-free-firmware" >> /etc/apt/sources.list \
-    && apt update -y \
     && apt install -y vainfo libva2 intel-media-va-driver-non-free \
     && apt clean -y
 

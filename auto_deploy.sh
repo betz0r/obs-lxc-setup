@@ -143,68 +143,59 @@ pct exec ${CONTAINER_ID} -- bash -c "
     apt update -y
     apt install -y obs-studio
 
-    # Install VNC server and X11
-    echo 'Installing VNC server and X11...'
-    apt install -y tigervnc-standalone-server x11-apps xvfb
+    # Install desktop environment (lightweight XFCE)
+    echo 'Installing XFCE4 desktop...'
+    apt install -y xfce4 xfce4-goodies xorg dbus-x11 x11-xserver-utils
 
-    # Install GPU drivers for hardware encoding
-    echo 'Installing GPU drivers...'
-    apt install -y vainfo libva2 intel-media-va-driver-non-free
+    # Install TigerVNC with socket activation
+    echo 'Installing TigerVNC server...'
+    apt install -y tigervnc-standalone-server gdm3
 
-    # Create VNC password file
+    # Create VNC password file for root
     mkdir -p /root/.vnc
     echo '123456' | vncpasswd -f > /root/.vnc/passwd
     chmod 600 /root/.vnc/passwd
 
-    # Create startup script for VNC and OBS
-    cat > /root/start-obs-vnc.sh << 'SCRIPT'
-#!/bin/bash
-# Start VNC server on display :1
-echo 'Starting VNC server...'
-vncserver :1 -geometry 1920x1080 -depth 24 -dpi 96 -localhost no -noxstartup
-
-sleep 2
-
-# Start OBS with GPU encoding
-echo 'Starting OBS Studio...'
-export DISPLAY=:1
-export LIBVA_DRIVER_NAME=iHD
-
-# Fix GPU permissions
-chmod 666 /dev/dri/* 2>/dev/null || true
-
-obs --startstreaming
-
-SCRIPT
-    chmod +x /root/start-obs-vnc.sh
-
-    # Create systemd service
-    cat > /etc/systemd/system/obs-vnc.service << 'SERVICE'
+    # Create systemd socket file for VNC
+    cat > /etc/systemd/system/xvnc.socket << 'SOCKET'
 [Unit]
-Description=OBS with VNC Server
-After=network-online.target
-Wants=network-online.target
+Description=XVNC Socket
+PartOf=xvnc@.service
+
+[Socket]
+ListenStream=5900
+Accept=yes
+
+[Install]
+WantedBy=sockets.target
+SOCKET
+
+    # Create systemd service file for VNC
+    cat > /etc/systemd/system/xvnc@.service << 'XVNC'
+[Unit]
+Description=XVNC per-connection daemon
+PartOf=xvnc.socket
 
 [Service]
 Type=simple
+ExecStart=-/usr/bin/Xvnc -inetd -query localhost -geometry 1920x1080 -depth 24 -rfbwait 10000 -rfbauth /root/.vnc/passwd -rfbport 5900
 User=root
-WorkingDirectory=/root
-ExecStart=/root/start-obs-vnc.sh
-Restart=always
-RestartSec=10
-Environment=\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"
+StandardInput=socket
+StandardOutput=socket
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
+XVNC
 
-SERVICE
-    chmod 644 /etc/systemd/system/obs-vnc.service
+    # Set XFCE4 as default session
+    update-alternatives --set x-session-manager /usr/bin/xfce4-session
 
-    # Enable and start the service
+    # Enable and start VNC socket
     systemctl daemon-reload
-    systemctl enable obs-vnc
-    systemctl start obs-vnc
+    systemctl enable xvnc.socket
+    systemctl start xvnc.socket
 "
 
-echo "Deployment complete! OBS with VNC is running on port 5901."
-echo "Access VNC at: http://\$(pct exec ${CONTAINER_ID} hostname -I | awk '{print \$1}'):6080/vnc.html"
+echo "Deployment complete! VNC is ready on port 5900 with socket activation."
+echo "Connect via VNC viewer to access the XFCE4 desktop."

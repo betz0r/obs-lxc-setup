@@ -133,7 +133,7 @@ pct exec ${CONTAINER_ID} -- bash -c "
     apt install -y docker.io docker-compose tigervnc-standalone-server x11-apps
 
     # Install drivers
-    apt-add-repository -y contrib non-free-firmware && apt update && apt install -y vainfo libva2 intel-media-va-driver-non-free
+    add-apt-repository -y contrib non-free-firmware && apt update && apt install -y vainfo libva2 intel-media-va-driver-non-free
 "
 
 # Step 9: Copy files into the container

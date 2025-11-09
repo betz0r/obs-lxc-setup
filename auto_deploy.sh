@@ -126,13 +126,15 @@ pct exec ${CONTAINER_ID} -- bash -c "
 pct exec ${CONTAINER_ID} -- bash -c "
     # Update the repository
     echo 'Updating the repository...'
-    apt update -y
-    apt install -y software-properties-common
     apt update -y && apt upgrade -y
 
     # Install Docker, Docker Compose, and VNC server
     echo 'Installing Docker, Docker Compose, and VNC server...'
-    apt install -y docker.io docker-compose tigervnc-standalone-server x11-apps
+    apt install apt-transport-https curl
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    apt update -y
+    apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin tigervnc-standalone-server x11-apps
 
     # Install drivers
     apt update -y && apt install -y vainfo libva2 intel-media-va-driver-non-free

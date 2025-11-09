@@ -14,16 +14,11 @@ services:
     environment:
       - VNC_PASSWD=123456  # Default VNC password
     devices:
-      - /dev/dri:/dev/dri
+      - /dev/dri:/dev/dri  # GPU device
     group_add:
       - video
     restart: always
-    shm_size: "256m"  # Shared memory
-    cap_add:
-      - SYS_RESOURCE
-      - SYS_ADMIN
-    security_opt:
-      - apparmor=unconfined
+    shm_size: "256m"  # Shared memory for X11 and hardware encoding
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "5901"]
       interval: 30s

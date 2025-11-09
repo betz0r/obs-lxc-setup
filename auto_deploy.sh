@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 # User Configuration
@@ -11,6 +10,7 @@ CORES=2
 SHARED_DIR="/host/shared"
 ARCH="amd64"
 DNS_SERVER="192.168.1.162"
+UNPRIVILEGED=0  # Set to 0 for privileged container (GPU access)
 
 # Function to check and download LXC template
 function check_template() {
@@ -99,23 +99,36 @@ pct create ${CONTAINER_ID} ${TEMPLATE} \
     --net0 name=eth0,bridge=vmbr0,ip=dhcp,hwaddr=BC:24:11:90:EA:23 \
     --password "${ROOT_PASSWORD}"
 
-# Step 6: Append configuration to LXC container
-echo "Appending LXC configuration..."
-cat <<EOF >> /etc/pve/lxc/${CONTAINER_ID}.conf
-# Additional LXC Configuration
-features: nesting=1
+# Step 6: Configure LXC container for Podman with GPU access
+echo "Configuring LXC container for privileged Podman with GPU support..."
+cat > /etc/pve/lxc/${CONTAINER_ID}.conf <<EOF
 arch: ${ARCH}
+cores: ${CORES}
+features: nesting=1
+hostname: ${CONTAINER_NAME}
+memory: ${MEMORY}
 mp0: ${SHARED_DIR},mp=/shared
+net0: name=eth0,bridge=vmbr0,ip=dhcp,hwaddr=BC:24:11:90:EA:23
+ostype: ubuntu
+storage: ${STORAGE}
+unprivileged: ${UNPRIVILEGED}
+
+# GPU Device Access
+dev0: /dev/dri,mp=/dev/dri
+
+# DNS
 nameserver: ${DNS_SERVER}
-unprivileged: 0
-lxc.cgroup2.devices.allow: c 226:* rwm
-lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
+
+# AppArmor and Capabilities for Podman
 lxc.apparmor.profile: unconfined
 lxc.cap.drop:
+
+# Device access for hardware
+lxc.cgroup2.devices.allow: c 226:* rwm
+lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
+
 # Network namespace support for Podman
 lxc.mount.entry: /dev/net/tun dev/net/tun none bind,optional,create=file
-lxc.net.0.type: veth
-lxc.net.0.flags: up
 EOF
 
 # Step 7: Start the container
@@ -127,48 +140,27 @@ echo "Installing dependencies and setting up OBS VNC..."
 pct exec ${CONTAINER_ID} -- bash -c "
     # Fix DNS resolution
     echo 'nameserver ${DNS_SERVER}' > /etc/resolv.conf
-"
-pct exec ${CONTAINER_ID} -- bash -c "
+
     # Update the repository
     echo 'Updating the repository...'
     apt update -y && apt upgrade -y
 
     # Install Podman, Podman Compose, and VNC server
     echo 'Installing Podman, Podman Compose, and VNC server...'
-    apt install -y apt-transport-https curl gpg python3-pip
+    apt install -y apt-transport-https curl gpg python3-pip netcat-openbsd
     apt install -y podman podman-compose tigervnc-standalone-server x11-apps
 
-    # Install drivers
-    apt update -y && apt install -y vainfo libva2 intel-media-va-driver-non-free
+    # Install GPU drivers for hardware encoding
+    echo 'Installing GPU drivers...'
+    apt install -y vainfo libva2 intel-media-va-driver-non-free
 
-    # Enable Podman socket for podman-compose
-    systemctl enable podman.socket
-    systemctl start podman.socket
+    # Configure Podman registries for Docker Hub (community scripts method)
+    echo 'Configuring Podman registries...'
+    echo 'unqualified-search-registries=[\"docker.io\"]' >> /etc/containers/registries.conf
 
-    # Configure Podman to search Docker Hub by default
-    mkdir -p /etc/containers
-    cat > /etc/containers/registries.conf <<'REGCONF'
-unqualified-search-registries = [\"docker.io\"]
-
-[[registry]]
-prefix = \"docker.io\"
-location = \"docker.io\"
-REGCONF
-
-    # Configure Podman for root mode (needed for GPU access)
-    mkdir -p /etc/containers
-    cat > /etc/containers/containers.conf <<'PODCONF'
-[containers]
-netns = \"host\"
-log_driver = \"journald\"
-userns = \"host\"
-ipc = \"host\"
-pid = \"host\"
-PODCONF
-
-    # Enable Podman system service for root
-    systemctl enable podman.service
-    systemctl start podman.service
+    # Enable and start Podman socket (not service - socket activation is used)
+    echo 'Starting Podman socket...'
+    systemctl enable --now podman.socket
 "
 
 # Step 9: Copy files into the container

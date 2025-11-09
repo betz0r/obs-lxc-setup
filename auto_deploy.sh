@@ -130,7 +130,7 @@ pct exec ${CONTAINER_ID} -- bash -c "
 
     # Install Docker, Docker Compose, and VNC server
     echo 'Installing Docker, Docker Compose, and VNC server...'
-    apt install apt-transport-https curl
+    apt install -y apt-transport-https curl gpg
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
     apt update -y
@@ -151,7 +151,7 @@ pct push ${CONTAINER_ID} ./entrypoint.sh /root/entrypoint.sh
 echo "Setting up OBS VNC Docker service..."
 pct exec ${CONTAINER_ID} -- bash -c "
     cd /root
-    docker-compose up -d
+    docker compose up -d
     systemctl daemon-reload
     systemctl enable obs-vnc
     systemctl start obs-vnc

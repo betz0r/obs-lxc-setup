@@ -20,12 +20,8 @@ VNC_PID=$!
 sleep 2
 
 # Verify VNC is listening
-if nc -z 127.0.0.1 5901 2>/dev/null; then
-    echo "VNC server is listening on port 5901"
-else
-    echo "WARNING: VNC server may not be listening on port 5901"
-    vncserver -list 2>/dev/null || echo "vncserver -list failed"
-fi
+echo "VNC server started, checking status..."
+vncserver -list
 
 # Start OBS in the background
 echo "Starting OBS Studio..."
@@ -37,8 +33,9 @@ OBS_PID=$!
 # Keep the container alive - monitor VNC and OBS
 echo "Container started. Monitoring services..."
 while true; do
-    if ! nc -z 127.0.0.1 5901 2>/dev/null; then
-        echo "VNC port not responding, restarting..."
+    # Check if VNC process is still running
+    if ! pgrep -f "Xtigervnc" > /dev/null; then
+        echo "VNC process stopped, restarting..."
         killall vncserver 2>/dev/null || true
         sleep 1
         vncserver :1 -geometry 1920x1080 -depth 24 -dpi 96 >/tmp/vncserver.log 2>&1 &

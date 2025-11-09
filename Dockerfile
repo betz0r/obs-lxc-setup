@@ -10,7 +10,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y obs-studio \
     && apt-get clean -y
 
-RUN apt-get update -y && apt-get install -y vainfo libva2 intel-media-va-driver-non-free i965-va-driver
+RUN apt-add-repository -y contrib non-free-firmware && apt update && apt install -y vainfo libva2 intel-media-va-driver-non-free
 
 RUN echo "?package(bash):needs=\"X11\" section=\"DockerCustom\" title=\"OBS Screencast\" command=\"obs\"" >> /usr/share/menu/custom-docker && update-menus
 

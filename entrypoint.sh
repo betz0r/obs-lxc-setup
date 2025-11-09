@@ -37,10 +37,11 @@ OBS_PID=$!
 # Keep the container alive - monitor VNC and OBS
 echo "Container started. Monitoring services..."
 while true; do
-    if ! ps -p $VNC_PID > /dev/null 2>&1; then
-        echo "VNC stopped, restarting..."
+    if ! nc -z localhost 5901 2>/dev/null; then
+        echo "VNC port not responding, restarting..."
+        killall vncserver 2>/dev/null || true
+        sleep 1
         vncserver :1 -geometry 1920x1080 -depth 24 -dpi 96 >/tmp/vncserver.log 2>&1 &
-        VNC_PID=$!
         sleep 2
     fi
 

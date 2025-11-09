@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
     container_name: obs_vnc_container
     privileged: true
     ports:
@@ -10,7 +11,6 @@ services:
       - "5901:5901"  # VNC Web Port
     volumes:
       - /shared:/shared  # Shared directory
-      - /run/user/0/podman/podman.sock:/run/podman/podman.sock:ro  # Podman socket for nested operations
     environment:
       - VNC_PASSWD=123456  # Default VNC password
     devices:

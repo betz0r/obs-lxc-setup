@@ -92,6 +92,7 @@ pct create ${CONTAINER_ID} ${TEMPLATE} \
     --ostype ubuntu \
     --arch ${ARCH} \
     --features nesting=1 \
+    --privileged 1 \
     --hostname ${CONTAINER_NAME} \
     --storage ${STORAGE} \
     --cores ${CORES} \
@@ -111,6 +112,10 @@ lxc.cgroup2.devices.allow: c 226:* rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 lxc.apparmor.profile: unconfined
 lxc.cap.drop:
+# Network namespace support for Podman
+lxc.mount.entry: /dev/net/tun dev/net/tun none bind,optional,create=file
+lxc.net.0.type: veth
+lxc.net.0.flags: up
 EOF
 
 # Step 7: Start the container
@@ -150,8 +155,20 @@ prefix = \"docker.io\"
 location = \"docker.io\"
 REGCONF
 
-    # Reload systemd user services
-    systemctl --user daemon-reload 2>/dev/null || true
+    # Configure Podman for root mode (needed for GPU access)
+    mkdir -p /etc/containers
+    cat > /etc/containers/containers.conf <<'PODCONF'
+[containers]
+netns = \"host\"
+log_driver = \"journald\"
+userns = \"host\"
+ipc = \"host\"
+pid = \"host\"
+PODCONF
+
+    # Enable Podman system service for root
+    systemctl enable podman.service
+    systemctl start podman.service
 "
 
 # Step 9: Copy files into the container

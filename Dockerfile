@@ -8,6 +8,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && add-apt-repository ppa:obsproject/obs-studio \
     && apt update -y \
     && apt install -y obs-studio \
+    && apt install -y xvfb x11-utils \
     && apt install -y vainfo libva2 intel-media-va-driver-non-free \
     && apt clean -y
 

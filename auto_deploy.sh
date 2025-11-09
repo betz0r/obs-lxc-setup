@@ -92,7 +92,6 @@ pct create ${CONTAINER_ID} ${TEMPLATE} \
     --ostype ubuntu \
     --arch ${ARCH} \
     --features nesting=1 \
-    --privileged 1 \
     --hostname ${CONTAINER_NAME} \
     --storage ${STORAGE} \
     --cores ${CORES} \
@@ -108,6 +107,7 @@ features: nesting=1
 arch: ${ARCH}
 mp0: ${SHARED_DIR},mp=/shared
 nameserver: ${DNS_SERVER}
+unprivileged: 0
 lxc.cgroup2.devices.allow: c 226:* rwm
 lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 lxc.apparmor.profile: unconfined

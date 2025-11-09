@@ -101,22 +101,11 @@ pct create ${CONTAINER_ID} ${TEMPLATE} \
 
 # Step 6: Configure LXC container for Podman with GPU access
 echo "Configuring LXC container for privileged Podman with GPU support..."
-cat > /etc/pve/lxc/${CONTAINER_ID}.conf <<EOF
-arch: ${ARCH}
-cores: ${CORES}
-features: nesting=1
-hostname: ${CONTAINER_NAME}
-memory: ${MEMORY}
-mp0: ${SHARED_DIR},mp=/shared
-net0: name=eth0,bridge=vmbr0,ip=dhcp,hwaddr=BC:24:11:90:EA:23
-ostype: ubuntu
-storage: ${STORAGE}
+cat >> /etc/pve/lxc/${CONTAINER_ID}.conf <<EOF
+
+# Additional LXC Configuration for Podman with GPU
 unprivileged: ${UNPRIVILEGED}
-
-# GPU Device Access
-dev0: /dev/dri,mp=/dev/dri
-
-# DNS
+mp0: ${SHARED_DIR},mp=/shared
 nameserver: ${DNS_SERVER}
 
 # AppArmor and Capabilities for Podman

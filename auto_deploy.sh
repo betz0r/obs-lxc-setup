@@ -128,16 +128,17 @@ pct exec ${CONTAINER_ID} -- bash -c "
     echo 'Updating the repository...'
     apt update -y && apt upgrade -y
 
-    # Install Docker, Docker Compose, and VNC server
-    echo 'Installing Docker, Docker Compose, and VNC server...'
-    apt install -y apt-transport-https curl gpg
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-    apt update -y
-    apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin tigervnc-standalone-server x11-apps
+    # Install Podman, Podman Compose, and VNC server
+    echo 'Installing Podman, Podman Compose, and VNC server...'
+    apt install -y apt-transport-https curl gpg python3-pip
+    apt install -y podman podman-compose tigervnc-standalone-server x11-apps
 
     # Install drivers
     apt update -y && apt install -y vainfo libva2 intel-media-va-driver-non-free
+
+    # Enable Podman socket for podman-compose
+    systemctl enable podman.socket
+    systemctl start podman.socket
 "
 
 # Step 9: Copy files into the container
@@ -147,11 +148,11 @@ pct push ${CONTAINER_ID} ./docker-compose.yml /root/docker-compose.yml
 pct push ${CONTAINER_ID} ./systemd/obs-vnc.service /etc/systemd/system/obs-vnc.service
 pct push ${CONTAINER_ID} ./entrypoint.sh /root/entrypoint.sh
 
-# Step 10: Run OBS VNC Docker service
-echo "Setting up OBS VNC Docker service..."
+# Step 10: Run OBS VNC Podman service
+echo "Setting up OBS VNC Podman service..."
 pct exec ${CONTAINER_ID} -- bash -c "
     cd /root
-    docker compose up -d
+    podman-compose up -d
     systemctl daemon-reload
     systemctl enable obs-vnc
     systemctl start obs-vnc

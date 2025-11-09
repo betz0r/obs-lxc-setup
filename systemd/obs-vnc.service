@@ -1,9 +1,12 @@
 [Unit]
-Description=OBS with VNC Server
-After=docker.service
+Description=OBS with VNC Server (Podman)
+After=podman.socket
+Requires=podman.socket
 
 [Service]
-ExecStart=/usr/bin/docker-compose -f /root/obs-lxc-setup/docker-compose.yml up -d
+Type=simple
+ExecStart=/usr/bin/podman-compose -f /root/docker-compose.yml up
+ExecStop=/usr/bin/podman-compose -f /root/docker-compose.yml down
 Restart=always
 RestartSec=10
 

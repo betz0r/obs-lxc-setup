@@ -10,6 +10,7 @@ services:
       - "5901:5901"  # VNC Web Port
     volumes:
       - /shared:/shared  # Shared directory
+      - /run/user/0/podman/podman.sock:/run/podman/podman.sock:ro  # Podman socket for nested operations
     environment:
       - VNC_PASSWD=123456  # Default VNC password
     devices:
@@ -18,6 +19,11 @@ services:
       - video
     restart: always
     shm_size: "256m"  # Shared memory
+    cap_add:
+      - SYS_RESOURCE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor=unconfined
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "5901"]
       interval: 30s

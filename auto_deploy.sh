@@ -139,7 +139,7 @@ pct exec ${CONTAINER_ID} -- bash -c "
     # Install OBS Studio
     echo 'Installing OBS Studio...'
     apt install -y software-properties-common
-    add-apt-repository ppa:obsproject/obs-studio
+    add-apt-repository -y ppa:obsproject/obs-studio
     apt update -y
     apt install -y obs-studio
 

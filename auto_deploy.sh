@@ -126,8 +126,8 @@ pct exec ${CONTAINER_ID} -- bash -c "
 pct exec ${CONTAINER_ID} -- bash -c "
     # Update the repository
     echo 'Updating the repository...'
-    apt update && apt upgrade -y
     apt install -y software-properties-common
+    apt update -y && apt upgrade -y
 
     # Install Docker, Docker Compose, and VNC server
     echo 'Installing Docker, Docker Compose, and VNC server...'

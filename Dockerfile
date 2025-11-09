@@ -5,11 +5,12 @@ USER root
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt update -y \
     && apt install -y software-properties-common \
+    && apt update -y \
     && add-apt-repository ppa:obsproject/obs-studio \
     && apt update -y \
     && apt install -y obs-studio \
     && add-apt-repository -y contrib non-free-firmware \
-    && apt update \
+    && apt update -y \
     && apt install -y vainfo libva2 intel-media-va-driver-non-free \
     && apt clean -y
 

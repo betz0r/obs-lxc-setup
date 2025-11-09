@@ -1,4 +1,4 @@
-FROM bandi13/gui-docker:1.5
+FROM docker.io/bandi13/gui-docker:1.5
 
 USER root
 

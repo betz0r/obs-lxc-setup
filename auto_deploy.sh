@@ -139,6 +139,19 @@ pct exec ${CONTAINER_ID} -- bash -c "
     # Enable Podman socket for podman-compose
     systemctl enable podman.socket
     systemctl start podman.socket
+
+    # Configure Podman to search Docker Hub by default
+    mkdir -p /etc/containers
+    cat > /etc/containers/registries.conf <<'REGCONF'
+unqualified-search-registries = [\"docker.io\"]
+
+[[registry]]
+prefix = \"docker.io\"
+location = \"docker.io\"
+REGCONF
+
+    # Reload systemd user services
+    systemctl --user daemon-reload 2>/dev/null || true
 "
 
 # Step 9: Copy files into the container

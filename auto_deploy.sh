@@ -132,7 +132,7 @@ pct exec ${CONTAINER_ID} -- bash -c "
     echo 'Installing Docker, Docker Compose, and VNC server...'
     apt install -y apt-transport-https curl gpg
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    echo `deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable` | tee /etc/apt/sources.list.d/docker.list > /dev/null
     apt update -y
     apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin tigervnc-standalone-server x11-apps
 

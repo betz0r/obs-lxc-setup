@@ -5,8 +5,9 @@ set -e
 CONTAINER_NAME="obs-vnc-lxc"
 TEMPLATE="local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
 STORAGE="local-lvm"
-MEMORY=1024
-CORES=2
+MEMORY=2048
+CORES=4
+DISK_SIZE=60
 SHARED_DIR="/host/shared"
 ARCH="amd64"
 DNS_SERVER="192.168.1.162"
@@ -96,6 +97,7 @@ pct create ${CONTAINER_ID} ${TEMPLATE} \
     --storage ${STORAGE} \
     --cores ${CORES} \
     --memory ${MEMORY} \
+    --rootfs ${STORAGE}:${DISK_SIZE} \
     --net0 name=eth0,bridge=vmbr0,ip=dhcp,hwaddr=BC:24:11:90:EA:23 \
     --password "${ROOT_PASSWORD}"
 

@@ -89,7 +89,7 @@ create_shared_dir
 # Step 5: Create the LXC container
 echo "Creating LXC container with ID ${CONTAINER_ID}..."
 pct create ${CONTAINER_ID} ${TEMPLATE} \
-    --ostype debian \
+    --ostype ubuntu \
     --arch ${ARCH} \
     --features nesting=1 \
     --hostname ${CONTAINER_NAME} \
@@ -126,6 +126,7 @@ pct exec ${CONTAINER_ID} -- bash -c "
 pct exec ${CONTAINER_ID} -- bash -c "
     # Update the repository
     echo 'Updating the repository...'
+    apt update -y
     apt install -y software-properties-common
     apt update -y && apt upgrade -y
 
@@ -134,7 +135,7 @@ pct exec ${CONTAINER_ID} -- bash -c "
     apt install -y docker.io docker-compose tigervnc-standalone-server x11-apps
 
     # Install drivers
-    add-apt-repository -y contrib non-free-firmware && apt update && apt install -y vainfo libva2 intel-media-va-driver-non-free
+    apt update -y && apt install -y vainfo libva2 intel-media-va-driver-non-free
 "
 
 # Step 9: Copy files into the container

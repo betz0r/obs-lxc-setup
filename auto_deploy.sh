@@ -126,8 +126,8 @@ EOF
 echo "Starting the container..."
 pct start ${CONTAINER_ID}
 
-# Step 8: Install dependencies and set up OBS VNC inside the container
-echo "Installing dependencies and setting up OBS VNC..."
+# Step 8: Install OBS, VNC, and dependencies directly in LXC container
+echo "Installing OBS, VNC server, and dependencies..."
 pct exec ${CONTAINER_ID} -- bash -c "
     # Fix DNS resolution
     echo 'nameserver ${DNS_SERVER}' > /etc/resolv.conf
@@ -136,39 +136,75 @@ pct exec ${CONTAINER_ID} -- bash -c "
     echo 'Updating the repository...'
     apt update -y && apt upgrade -y
 
-    # Install Podman, Podman Compose, and VNC server
-    echo 'Installing Podman, Podman Compose, and VNC server...'
-    apt install -y apt-transport-https curl gpg python3-pip netcat-openbsd
-    apt install -y podman podman-compose tigervnc-standalone-server x11-apps
+    # Install OBS Studio
+    echo 'Installing OBS Studio...'
+    apt install -y software-properties-common
+    add-apt-repository ppa:obsproject/obs-studio
+    apt update -y
+    apt install -y obs-studio
+
+    # Install VNC server and X11
+    echo 'Installing VNC server and X11...'
+    apt install -y tigervnc-standalone-server x11-apps xvfb
 
     # Install GPU drivers for hardware encoding
     echo 'Installing GPU drivers...'
     apt install -y vainfo libva2 intel-media-va-driver-non-free
 
-    # Configure Podman registries for Docker Hub (community scripts method)
-    echo 'Configuring Podman registries...'
-    echo 'unqualified-search-registries=[\"docker.io\"]' >> /etc/containers/registries.conf
+    # Create VNC password file
+    mkdir -p /root/.vnc
+    echo '123456' | vncpasswd -f > /root/.vnc/passwd
+    chmod 600 /root/.vnc/passwd
 
-    # Enable and start Podman socket (not service - socket activation is used)
-    echo 'Starting Podman socket...'
-    systemctl enable --now podman.socket
-"
+    # Create startup script for VNC and OBS
+    cat > /root/start-obs-vnc.sh << 'SCRIPT'
+#!/bin/bash
+# Start VNC server on display :1
+echo 'Starting VNC server...'
+vncserver :1 -geometry 1920x1080 -depth 24 -dpi 96 -localhost no -noxstartup
 
-# Step 9: Copy files into the container
-echo "Copying Docker and systemd files into the container..."
-pct push ${CONTAINER_ID} ./Dockerfile /root/Dockerfile
-pct push ${CONTAINER_ID} ./docker-compose.yml /root/docker-compose.yml
-pct push ${CONTAINER_ID} ./systemd/obs-vnc.service /etc/systemd/system/obs-vnc.service
-pct push ${CONTAINER_ID} ./entrypoint.sh /root/entrypoint.sh
+sleep 2
 
-# Step 10: Run OBS VNC Podman service
-echo "Setting up OBS VNC Podman service..."
-pct exec ${CONTAINER_ID} -- bash -c "
-    cd /root
-    podman-compose up -d
+# Start OBS with GPU encoding
+echo 'Starting OBS Studio...'
+export DISPLAY=:1
+export LIBVA_DRIVER_NAME=iHD
+
+# Fix GPU permissions
+chmod 666 /dev/dri/* 2>/dev/null || true
+
+obs --startstreaming
+
+SCRIPT
+    chmod +x /root/start-obs-vnc.sh
+
+    # Create systemd service
+    cat > /etc/systemd/system/obs-vnc.service << 'SERVICE'
+[Unit]
+Description=OBS with VNC Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/root/start-obs-vnc.sh
+Restart=always
+RestartSec=10
+Environment=\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"
+
+[Install]
+WantedBy=multi-user.target
+
+SERVICE
+    chmod 644 /etc/systemd/system/obs-vnc.service
+
+    # Enable and start the service
     systemctl daemon-reload
     systemctl enable obs-vnc
     systemctl start obs-vnc
 "
 
-echo "Deployment complete! OBS VNC is running on port 5901."
+echo "Deployment complete! OBS with VNC is running on port 5901."
+echo "Access VNC at: http://\$(pct exec ${CONTAINER_ID} hostname -I | awk '{print \$1}'):6080/vnc.html"

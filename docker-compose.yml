@@ -6,9 +6,6 @@ services:
       network: host
     container_name: obs_vnc_container
     privileged: true
-    ports:
-      - "5900:5900"  # VNC Port
-      - "5901:5901"  # VNC Web Port
     volumes:
       - /shared:/shared  # Shared directory
     environment:
@@ -19,9 +16,3 @@ services:
       - video
     restart: always
     shm_size: "256m"  # Shared memory for X11 and hardware encoding
-    healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "5901"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 15s

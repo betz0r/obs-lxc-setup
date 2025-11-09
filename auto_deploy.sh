@@ -4,7 +4,7 @@ set -e
 
 # User Configuration
 CONTAINER_NAME="obs-vnc-lxc"
-TEMPLATE="local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
+TEMPLATE="local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
 STORAGE="local-lvm"
 MEMORY=1024
 CORES=2
@@ -14,11 +14,11 @@ DNS_SERVER="192.168.1.162"
 
 # Function to check and download LXC template
 function check_template() {
-    echo "Checking for Debian 13 template..."
-    if ! pveam list local | grep -q "debian-13-standard"; then
-        echo "Template not found. Downloading the Debian 13 template..."
+    echo "Checking for Ubuntu 24.04 template..."
+    if ! pveam list local | grep -q "ubuntu-24.04-standard"; then
+        echo "Template not found. Downloading the Ubuntu 24.04 template..."
         pveam update
-        if ! pveam download local debian-13-standard_13.1-2_amd64.tar.zst; then
+        if ! pveam download local ubuntu-24.04-standard_24.04-2_amd64.tar.zst; then
             echo "Error: Failed to download template. Check your network or Proxmox storage."
             exit 1
         fi

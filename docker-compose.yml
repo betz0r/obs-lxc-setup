@@ -20,7 +20,8 @@ services:
     restart: always
     shm_size: "256m"  # Shared memory for X11 and hardware encoding
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "5901"]
-      interval: 30s
-      timeout: 5s
+      test: ["CMD", "nc", "-zv", "localhost", "5901"]
+      interval: 10s
+      timeout: 3s
       retries: 3
+      start_period: 15s
